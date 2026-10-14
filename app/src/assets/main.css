@@ -1,0 +1,5 @@
+/* O visual vem do Vuetify; aqui ficam so ajustes pontuais. */
+.pagina {
+  max-width: 1200px;
+  margin: 0 auto;
+}

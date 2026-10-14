@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-list
+  namespace: todo
+  labels:
+    app: todo-list
+spec:
+  # 1 replica: o H2 e em memoria, entao cada pod teria o seu proprio banco.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-list
+  template:
+    metadata:
+      labels:
+        app: todo-list
+    spec:
+      containers:
+        - name: todo-list
+          image: petersonmarcelo/todo-list:0.1.1
+          # Always: forca baixar do Docker Hub (o cluster do Docker Desktop
+          # compartilha as imagens locais do Docker e poderia usar uma copia local).
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          # A aplicacao leva de 12 a 21 s para subir; ate 60 s de tolerancia.
+          startupProbe:
+            tcpSocket:
+              port: 8080
+            periodSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          securityContext:
+            # UID numerico (usuario "app" da imagem): o Kubernetes nao consegue
+            # verificar "nao-root" a partir de um nome de usuario.
+            runAsUser: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
